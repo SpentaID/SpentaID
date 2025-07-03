@@ -21,9 +21,15 @@
         </p>
 
         <div class="spenta-id-display">
-            <p data-translate="yourIdIs">Your SpentaID:</p>
-            <p class="spenta-id-address">yourname@spenta.id</p>
-            <button class="action-button" data-translate="learnMoreButton">Learn More</button>
+            <p data-translate="createYourId">Create Your SpentaID:</p>
+            <div class="input-group">
+                <input type="text" id="usernameInput" placeholder="Enter desired username" data-translate-placeholder="enterUsernamePlaceholder">
+                <span class="domain-suffix">@spenta.id</span>
+            </div>
+            <button class="action-button" id="generateIdButton" data-translate="generateIdButton">Generate SpentaID</button>
+            <p class="spenta-id-address" id="displaySpentaId"></p>
+            <p class="message-text" id="statusMessage"></p>
+            <button class="action-button secondary" data-translate="learnMoreButton">Learn More</button>
         </div>
 
         <div class="language-selector">
