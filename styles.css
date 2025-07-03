@@ -113,6 +113,54 @@ p {
     transform: translateY(-3px);
 }
 
+/* Input Group for Username */
+.input-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    padding: 12px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px 0 0 8px; /* Rounded left side */
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1.1em;
+    outline: none;
+    flex-grow: 1; /* Allows input to take up available space */
+    max-width: 300px; /* Limit max width for input */
+}
+
+.input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.input-group input:focus {
+    border-color: var(--color-green-light);
+    box-shadow: 0 0 0 3px rgba(102, 255, 178, 0.3); /* Green glow on focus */
+}
+
+.input-group .domain-suffix {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 12px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-left: none; /* No border between input and suffix */
+    border-radius: 0 8px 8px 0; /* Rounded right side */
+    font-size: 1.1em;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Status and Message Text */
+.message-text {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-top: 20px;
+    min-height: 25px; /* Reserve space to prevent layout shift */
+}
+
+
 /* Buttons */
 .action-button {
     background-color: var(--color-button-primary);
@@ -262,6 +310,20 @@ p {
     .account-icons img {
         width: 50px;
         height: 50px;
+    }
+    .input-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    .input-group input,
+    .input-group .domain-suffix {
+        width: 90%;
+        max-width: none;
+        border-radius: 8px; /* Full border radius on mobile */
+        margin-bottom: 10px; /* Spacing between input and suffix on mobile */
+    }
+    .input-group .domain-suffix {
+        border-left: 1px solid rgba(255, 255, 255, 0.4); /* Re-add border for mobile */
     }
 }
 
