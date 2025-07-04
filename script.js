@@ -7,17 +7,21 @@ const BACKEND_API_BASE_URL = 'https://Pirozpersian.pythonanywhere.com'; // Your 
 const translations = {
     en: {
         pageTitle: "SpentaID: Your Universal Digital Identity",
-        mainHeading: "SpentaID: Your Universal Digital Identity",
+        mainHeading: "SpentaID", // Simpler main heading for logo section
         descriptionText: "Unify your online presence with a single, secure SpentaID. Connect all your email services and digital accounts in one place.",
         createYourId: "Create Your SpentaID:",
         enterUsernamePlaceholder: "Enter desired username",
         generateIdButton: "Generate SpentaID",
         learnMoreButton: "Learn More",
-        selectLanguage: "Select Language:",
+        selectLanguage: "Select Language:", // Kept for modal functionality, not main view
         linkAccountsHeading: "Link Your Accounts",
         linkAccountsDescription: "Connect your existing Gmail, Outlook, ProtonMail, and other accounts to seamlessly manage your digital life from SpentaID.",
         getStartedButton: "Get Started",
         footerText: "⚡ Powered by Spenta - Innovating Digital Identity ⚡",
+        // Settings Modal
+        settingsHeading: "Settings",
+        selectLanguageModal: "Language:",
+        closeButton: "Close",
         // Messages
         generatingId: "Generating SpentaID...",
         idGeneratedSuccess: "SpentaID created successfully!",
@@ -31,17 +35,21 @@ const translations = {
     },
     fa: {
         pageTitle: "سپنتاآیدی: هویت دیجیتال جهانی شما",
-        mainHeading: "سپنتاآیدی: هویت دیجیتال جهانی شما",
+        mainHeading: "سپنتاآیدی", // Simpler main heading for logo section
         descriptionText: "حضور آنلاین خود را با یک سپنتاآیدی امن و یکپارچه کنید. تمامی سرویس‌های ایمیل و حساب‌های دیجیتال خود را در یک مکان متصل نمایید.",
         createYourId: "سپنتاآیدی خود را بسازید:",
         enterUsernamePlaceholder: "نام کاربری دلخواه خود را وارد کنید",
         generateIdButton: "ساخت سپنتاآیدی",
         learnMoreButton: "بیشتر بدانید",
-        selectLanguage: "انتخاب زبان:",
+        selectLanguage: "انتخاب زبان:", // Kept for modal functionality, not main view
         linkAccountsHeading: "حساب‌های خود را متصل کنید",
         linkAccountsDescription: "حساب‌های جیمیل، اوت‌لوک، پروتون‌میل و سایر حساب‌های موجود خود را متصل کنید تا زندگی دیجیتال خود را به آسانی از طریق سپنتاآیدی مدیریت نمایید.",
         getStartedButton: "شروع کنید",
         footerText: "⚡ با افتخار از سپنتا - نوآور در هویت دیجیتال ⚡",
+        // Settings Modal
+        settingsHeading: "تنظیمات",
+        selectLanguageModal: "زبان:",
+        closeButton: "بستن",
         // Messages
         generatingId: "در حال ساخت سپنتاآیدی...",
         idGeneratedSuccess: "سپنتاآیدی با موفقیت ایجاد شد!",
@@ -77,12 +85,22 @@ function changeLanguage(lang) {
 
     document.title = translations[lang].pageTitle;
     localStorage.setItem('selectedLanguage', lang);
+    // Update language selector in modal
+    const modalLangSelect = document.getElementById('modal-language-select');
+    if (modalLangSelect) {
+        modalLangSelect.value = lang;
+    }
 }
 
 // Function to set the initial language when the page loads
 function setInitialLanguage() {
     const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
-    document.getElementById('language-select').value = savedLanguage;
+    const langSelect = document.getElementById('language-select'); // The hidden selector
+    const modalLangSelect = document.getElementById('modal-language-select'); // The modal selector
+
+    if (langSelect) langSelect.value = savedLanguage;
+    if (modalLangSelect) modalLangSelect.value = savedLanguage;
+
     changeLanguage(savedLanguage);
 }
 
@@ -135,6 +153,23 @@ async function generateSpentaId() {
     }
 }
 
+// Modal functions
+const settingsModal = document.getElementById('settingsModal');
+const settingsIcon = document.getElementById('settingsIcon');
+const closeSettingsModalButton = document.getElementById('closeSettingsModal');
+const modalCloseButton = settingsModal.querySelector('.modal-button');
+
+function openModal(modalElement) {
+    modalElement.style.display = 'flex'; // Use flex to center content
+}
+
+function closeModal(modalElementId) {
+    const modalElement = document.getElementById(modalElementId);
+    if (modalElement) {
+        modalElement.style.display = 'none';
+    }
+}
+
 // Placeholder for future account linking logic
 function linkAccount(provider) {
     const currentLang = localStorage.getItem('selectedLanguage') || 'en';
@@ -155,4 +190,27 @@ document.addEventListener('DOMContentLoaded', () => {
             linkAccount(img.alt);
         }
     });
+
+    // Event listeners for settings modal
+    if (settingsIcon) {
+        settingsIcon.addEventListener('click', () => openModal(settingsModal));
+    }
+    if (closeSettingsModalButton) {
+        closeSettingsModalButton.addEventListener('click', () => closeModal('settingsModal'));
+    }
+    if (modalCloseButton) {
+        modalCloseButton.addEventListener('click', () => closeModal('settingsModal'));
+    }
+    // Close modal if user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (event.target == settingsModal) {
+            closeModal('settingsModal');
+        }
+    });
+
+    // Initialize the language selector in the modal
+    const modalLangSelect = document.getElementById('modal-language-select');
+    if (modalLangSelect) {
+        modalLangSelect.value = localStorage.getItem('selectedLanguage') || 'en';
+    }
 });
