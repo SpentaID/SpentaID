@@ -8,19 +8,25 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://via.placeholder.com/80/00C6FF/0072FF?text=S" alt="Spenta Logo" class="logo">
-            <h1 data-translate="mainHeading">SpentaID: Your Universal Digital Identity</h1>
+            <div class="logo-container">
+                <img src="https://via.placeholder.com/100/00C6FF/0072FF?text=S" alt="Spenta Logo" class="logo">
+                <h1 data-translate="mainHeading">SpentaID</h1>
+            </div>
+            <div class="settings-icon-container">
+                <i class="fas fa-cog settings-icon" id="settingsIcon"></i>
+            </div>
         </div>
 
         <p class="description" data-translate="descriptionText">
             Unify your online presence with a single, secure SpentaID. Connect all your email services and digital accounts in one place.
         </p>
 
-        <div class="spenta-id-display">
+        <div class="spenta-id-generation-section">
             <p data-translate="createYourId">Create Your SpentaID:</p>
             <div class="input-group">
                 <input type="text" id="usernameInput" placeholder="Enter desired username" data-translate-placeholder="enterUsernamePlaceholder">
@@ -29,15 +35,6 @@
             <button class="action-button" id="generateIdButton" data-translate="generateIdButton">Generate SpentaID</button>
             <p class="spenta-id-address" id="displaySpentaId"></p>
             <p class="message-text" id="statusMessage"></p>
-            <button class="action-button secondary" data-translate="learnMoreButton">Learn More</button>
-        </div>
-
-        <div class="language-selector">
-            <label for="language-select" data-translate="selectLanguage">Select Language:</label>
-            <select id="language-select" onchange="changeLanguage(this.value)">
-                <option value="en">English</option>
-                <option value="fa">فارسی</option>
-            </select>
         </div>
 
         <div class="account-linking-section">
@@ -55,6 +52,21 @@
         <p class="footer-text" data-translate="footerText">
             ⚡ Powered by <strong style="color: var(--color-green-light);">Spenta</strong> - Innovating Digital Identity ⚡
         </p>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeSettingsModal">&times;</span>
+            <h2 data-translate="settingsHeading">Settings</h2>
+            <div class="setting-item">
+                <label for="modal-language-select" data-translate="selectLanguageModal">Language:</label>
+                <select id="modal-language-select" onchange="changeLanguage(this.value); closeModal('settingsModal');">
+                    <option value="en">English</option>
+                    <option value="fa">فارسی</option>
+                </select>
+            </div>
+            <button class="action-button secondary modal-button" data-translate="closeButton">Close</button>
+        </div>
     </div>
 
     <script src="script.js"></script>
