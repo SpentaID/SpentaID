@@ -6,6 +6,7 @@ const BACKEND_API_BASE_URL = 'https://Pirozpersian.pythonanywhere.com'; // Your 
 // Global state for registration steps
 let currentStep = 1;
 const totalSteps = 4; // We have 4 steps in HTML, though only 2 are functional now
+let currentUserData = {}; // To store data like username, email temporarily during registration
 
 // Object containing translations for different languages
 const translations = {
@@ -43,17 +44,14 @@ const translations = {
         // Messages
         usernameRequired: "Please enter a username.",
         emailRequired: "Please enter your email.",
-        generatingId: "Checking username...",
+        checkingUsername: "Checking username availability...", // New specific message
         usernameAvailable: "Username is available. Please proceed.",
-        usernameTaken: "Username is already taken or invalid. Please choose another.",
+        usernameTaken: "Username is already taken or invalid. Please choose another. Error: ", // Updated to include backend error
         invalidEmail: "Please enter a valid email address.",
         sendingCode: "Sending verification code...",
         codeSentSuccess: "Verification code sent! Check your inbox.",
-        codeSentFailed: "Failed to send code. Please try again.",
-        // Existing messages
-        idGeneratedSuccess: "SpentaID created successfully!",
-        idGenerationFailed: "Failed to create SpentaID: ", 
-        errorFetching: "Network error. Please try again later.",
+        codeSentFailed: "Failed to send code. Please try again. Error: ", // Updated to include backend error
+        errorFetching: "Network error. Please try again later.", // Generic network error
         linkingAccount: "Linking with ",
         notImplemented: " is not yet implemented. Stay tuned!",
         genericError: "An unexpected error occurred."
@@ -92,16 +90,13 @@ const translations = {
         // Messages
         usernameRequired: "لطفاً نام کاربری را وارد کنید.",
         emailRequired: "لطفاً ایمیل خود را وارد کنید.",
-        generatingId: "در حال بررسی نام کاربری...",
+        checkingUsername: "در حال بررسی نام کاربری...",
         usernameAvailable: "نام کاربری در دسترس است. لطفاً ادامه دهید.",
-        usernameTaken: "نام کاربری قبلاً استفاده شده یا نامعتبر است. لطفاً نام دیگری انتخاب کنید.",
+        usernameTaken: "نام کاربری قبلاً استفاده شده یا نامعتبر است. لطفاً نام دیگری انتخاب کنید. خطا: ", // Updated to include backend error
         invalidEmail: "لطفاً یک آدرس ایمیل معتبر وارد کنید.",
         sendingCode: "در حال ارسال کد تأیید...",
         codeSentSuccess: "کد تأیید ارسال شد! صندوق ورودی خود را بررسی کنید.",
-        codeSentFailed: "ارسال کد ناموفق بود. لطفاً دوباره تلاش کنید.",
-        // Existing messages
-        idGeneratedSuccess: "سپنتاآیدی با موفقیت ایجاد شد!",
-        idGenerationFailed: "خطا در ساخت سپنتاآیدی: ", 
+        codeSentFailed: "ارسال کد ناموفق بود. لطفاً دوباره تلاش کنید. خطا: ", // Updated to include backend error
         errorFetching: "خطای شبکه. لطفاً بعداً دوباره امتحان کنید.",
         linkingAccount: "در حال اتصال به ",
         notImplemented: " هنوز پیاده‌سازی نشده است. با ما همراه باشید!",
@@ -157,7 +152,7 @@ function showStep(stepNumber) {
     steps.forEach(step => {
         step.classList.remove('active-step');
         // Reset message for previous steps
-        const messageElement = step.querySelector('.message-text');
+        const messageElement = step.querySelector('.message-text'); // Get message element within each step
         if (messageElement) {
             messageElement.textContent = '';
             messageElement.style.color = '';
@@ -196,7 +191,7 @@ function displayStatusMessage(message, type = 'info') {
     }
 }
 
-// --- SpentaID Generation (Step 1 Logic) ---
+// --- SpentaID Registration Logic (Integrated with Backend) ---
 
 async function handleStep1Next() {
     const usernameInput = document.getElementById('usernameInput');
@@ -210,10 +205,10 @@ async function handleStep1Next() {
         return;
     }
 
-    displayStatusMessage(translations[currentLang].generatingId, 'info');
+    displayStatusMessage(translations[currentLang].checkingUsername, 'info'); // More specific message
 
     try {
-        const response = await fetch(`${BACKEND_API_BASE_URL}/api/generate-id`, { // This endpoint also validates username for availability
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/check-username`, { // New API endpoint
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -224,14 +219,15 @@ async function handleStep1Next() {
         const data = await response.json();
 
         if (response.ok) {
-            window.tempSpentaId = data.spenta_id; // Store for later use
+            currentUserData.username = username; // Store username
+            currentUserData.spenta_id = data.spenta_id; // Store generated SpentaID
             displayStatusMessage(translations[currentLang].usernameAvailable, 'success');
             setTimeout(() => { 
                 showStep(2); // Go to Step 2 (Email)
             }, 1000); 
         } else {
             const errorMessage = data.error || translations[currentLang].genericError;
-            displayStatusMessage(translations[currentLang].usernameTaken + errorMessage, 'error');
+            displayStatusMessage(translations[currentLang].usernameTaken + errorMessage, 'error'); // Include backend error
         }
     } catch (error) {
         console.error('Error checking username:', error);
@@ -239,7 +235,6 @@ async function handleStep1Next() {
     }
 }
 
-// --- Email Verification (Step 2 Logic) ---
 async function handleStep2SendCode() {
     const emailInput = document.getElementById('emailInput');
     const email = emailInput.value.trim();
@@ -260,32 +255,22 @@ async function handleStep2SendCode() {
 
     displayStatusMessage(translations[currentLang].sendingCode, 'info');
 
-    // --- FUTURE BACKEND INTEGRATION FOR SENDING EMAIL CODE ---
-    // This is where you would send a request to your backend to send an email.
-    // For now, we'll simulate success.
     try {
-        // Example of future fetch call for sending code:
-        // const response = await fetch(`${BACKEND_API_BASE_URL}/api/send-email-code`, {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ email: email, spenta_id: window.tempSpentaId }) // Send SpentaID too
-        // });
-        // const data = await response.json();
-        // if (response.ok) {
-        //     displayStatusMessage(translations[currentLang].codeSentSuccess, 'success');
-        //     setTimeout(() => { showStep(3); }, 1500);
-        // } else {
-        //     displayStatusMessage(translations[currentLang].codeSentFailed + (data.error || ''), 'error');
-        // }
-        
-        // --- SIMULATED SUCCESS FOR NOW ---
-        console.log("Simulating email code send to:", email);
-        setTimeout(() => {
-            displayStatusMessage(translations[currentLang].codeSentSuccess, 'success');
-            setTimeout(() => { showStep(3); }, 1500); // Move to step 3 (Code Verification)
-        }, 1500); // Simulate network delay
-        // --- END SIMULATION ---
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/register-email`, { // New API endpoint
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: currentUserData.username, email: email }) // Send username and email
+        });
+        const data = await response.json();
 
+        if (response.ok) {
+            currentUserData.email = email; // Store email
+            displayStatusMessage(translations[currentLang].codeSentSuccess, 'success');
+            setTimeout(() => { showStep(3); }, 1500); // Go to step 3 (Code Verification)
+        } else {
+            const errorMessage = data.error || translations[currentLang].genericError;
+            displayStatusMessage(translations[currentLang].codeSentFailed + errorMessage, 'error'); // Include backend error
+        }
     } catch (error) {
         console.error('Error sending email code:', error);
         displayStatusMessage(translations[currentLang].errorFetching, 'error');
@@ -320,10 +305,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listeners for multi-step form navigation
     document.getElementById('nextToStep2Button').addEventListener('click', handleStep1Next);
     document.getElementById('backToStep1Button').addEventListener('click', () => showStep(1));
-    document.getElementById('nextToStep3Button').addEventListener('click', handleStep2SendCode); // Added event listener for Send Code button
-    document.getElementById('backToStep2Button').addEventListener('click', () => showStep(2)); // Back from future Step 3
+    document.getElementById('nextToStep3Button').addEventListener('click', handleStep2SendCode);
+    document.getElementById('backToStep2Button').addEventListener('click', () => showStep(2));
     document.getElementById('nextToStep4Button').addEventListener('click', () => { /* Logic for Code Verification */ showStep(4); }); // Placeholder
-    document.getElementById('backToStep3Button').addEventListener('click', () => showStep(3)); // Back from future Step 4
+    document.getElementById('backToStep3Button').addEventListener('click', () => showStep(3));
     document.getElementById('finishRegistrationButton').addEventListener('click', () => { /* Logic for Finish */ alert('Registration Finished! (Simulated)'); }); // Placeholder
 
     // Event listeners for settings modal
@@ -344,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalLangSelect) {
         modalLangSelect.addEventListener('change', (event) => {
             changeLanguage(event.target.value);
-            // closeModal(settingsModal); // Removed: as per your request, the modal now closes automatically when language is changed via select's onchange in HTML
         });
     }
 
