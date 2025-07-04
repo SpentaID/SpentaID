@@ -141,13 +141,19 @@ p {
     opacity: 0; /* Hidden by default */
     transition: opacity 0.5s ease-in-out; /* Smooth transition between steps */
     pointer-events: none; /* Prevent interaction when hidden */
+    display: flex; /* Use flexbox for inner alignment of step content */
+    flex-direction: column;
+    align-items: center; /* Center content horizontally within step */
+    justify-content: center; /* Center content vertically within step */
 }
 
 .registration-step.active-step {
     opacity: 1; /* Show active step */
     pointer-events: auto; /* Allow interaction */
     position: relative; /* Take up space when active */
-    transform: translate(-50%, -50%); /* Re-center, but now it's in flow */
+    transform: none; /* Reset transform when active to flow naturally */
+    left: auto;
+    top: auto;
 }
 
 .registration-step h2 {
@@ -178,12 +184,13 @@ p {
 .input-group input {
     padding: 12px 15px;
     border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 8px 0 0 8px;
+    border-radius: 8px; /* Unified border-radius for all inputs */
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
     font-size: 1.1em;
     outline: none;
     flex-grow: 1;
+    min-width: 0; /* Allow input to shrink on small screens */
 }
 
 .input-group input::placeholder {
@@ -203,7 +210,14 @@ p {
     border-radius: 0 8px 8px 0;
     font-size: 1.1em;
     color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap; /* Prevent suffix from wrapping */
 }
+
+/* Specific styling for input without suffix */
+.input-group:not(:has(.domain-suffix)) input {
+    border-radius: 8px; /* Full border radius if no suffix */
+}
+
 
 /* Status and Message Text */
 .message-text {
@@ -446,6 +460,12 @@ p {
         max-width: none;
         border-radius: 8px; /* Full border radius on mobile */
         margin-bottom: 10px; /* Spacing between input and suffix on mobile */
+    }
+    .input-group:not(:has(.domain-suffix)) input { /* Specific for inputs without suffix */
+        width: 90%;
+        max-width: none;
+        border-radius: 8px;
+        margin-bottom: 10px;
     }
     .input-group .domain-suffix {
         border-left: 1px solid rgba(255, 255, 255, 0.4); /* Re-add border for mobile */
