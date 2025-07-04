@@ -3,10 +3,17 @@
 // IMPORTANT: Replace 'Pirozpersian' with your actual PythonAnywhere username!
 const BACKEND_API_BASE_URL = 'https://Pirozpersian.pythonanywhere.com'; // Your SpentaID-Back-End URL
 
-// Global state for registration steps
-let currentStep = 1;
-const totalSteps = 4; // We have 4 steps in HTML, though only 2 are functional now
-let currentUserData = {}; // To store data like username, email temporarily during registration
+// Global state for authentication flow
+let currentAuthStep = 1;
+// To store data (username/email, password etc.) temporarily during authentication flow
+let currentAuthData = {
+    identifier: '', // Can be username or email
+    username: '',   // The actual SpentaID username (if different from identifier)
+    email: '',
+    spenta_id: '',
+    isLogin: false, // True if user is logging in, false if registering
+    isResettingPassword: false // True if user is in password reset flow
+};
 
 // Object containing translations for different languages
 const translations = {
@@ -14,25 +21,43 @@ const translations = {
         pageTitle: "SpentaID: Your Universal Digital Identity",
         mainHeading: "SpentaID",
         descriptionText: "Unify your online presence with a single, secure SpentaID. Connect all your email services and digital accounts in one place.",
-        // Registration steps
-        step1Heading: "Choose Your SpentaID",
-        createYourIdPrompt: "Pick a unique username for your universal digital identity.",
-        enterUsernamePlaceholder: "Enter desired username",
-        nextButton: "Next",
-        step2Heading: "Verify Your Email",
-        enterEmailPrompt: "Please enter your email address to receive a verification code.",
+        // Authentication Steps (Unified for Login/Register)
+        authStep1Heading: "Login or Register",
+        authStep1Prompt: "Enter your SpentaID username or email address.",
+        identifierPlaceholder: "Username or Email",
+        proceedButton: "Proceed",
+        // Login Step 2
+        loginStep2Heading: "Enter Password",
+        loginStep2Prompt: "Please enter your password for {identifier}.",
+        passwordPlaceholder: "Password",
+        forgotPassword: "Forgot Password?",
+        loginButton: "Login",
+        // Registration Step 2 (Email)
+        regStep2Heading: "Verify Your Email",
+        regStep2Prompt: "Please enter your email address for {username} to receive a verification code.",
         enterEmailPlaceholder: "Enter your email",
         sendCodeButton: "Send Code",
+        // Verification Code Step 3
+        verifyCodeStep3Heading: "Enter Verification Code",
+        verifyCodeStep3Prompt: "A 6-digit code has been sent to {email}. Please enter it below.",
+        enterCodePlaceholder: "Enter 6-digit code",
+        verifyCodeButton: "Verify Code",
+        // Password Setup Step 4
+        setPasswordStep4Heading: "Set Your Password",
+        setPasswordStep4Prompt: "Choose a strong password for your SpentaID.",
+        enterPasswordPlaceholder: "Enter password",
+        confirmPasswordPlaceholder: "Confirm password",
+        finishButton: "Complete",
+        // Password Reset Request Step
+        resetRequestHeading: "Reset Your Password",
+        resetRequestPrompt: "Enter the email associated with your SpentaID to receive a reset code.",
+        sendResetCodeButton: "Send Reset Code",
+        // Success Screen
+        successHeading: "Welcome to SpentaID!",
+        successMessage: "Your digital identity is ready. Your SpentaID is {spenta_id}.",
+        goToDashboard: "Go to Dashboard",
+        // Common Buttons
         backButton: "Back",
-        step3Heading: "Enter Verification Code", // Future
-        enterCodePrompt: "A 6-digit code has been sent to your email. Please enter it below.", // Future
-        enterCodePlaceholder: "Enter 6-digit code", // Future
-        verifyCodeButton: "Verify Code", // Future
-        step4Heading: "Set Your Password", // Future
-        setPasswordPrompt: "Choose a strong password for your SpentaID.", // Future
-        enterPasswordPlaceholder: "Enter password", // Future
-        confirmPasswordPlaceholder: "Confirm password", // Future
-        finishButton: "Finish Registration", // Future
         // Account linking
         linkAccountsHeading: "Link Your Accounts",
         linkAccountsDescription: "Connect your existing Gmail, Outlook, ProtonMail, and other accounts to seamlessly manage your digital life from SpentaID.",
@@ -42,16 +67,22 @@ const translations = {
         settingsHeading: "Settings",
         selectLanguageModal: "Language:",
         // Messages
-        usernameRequired: "Please enter a username.",
+        usernameOrEmailRequired: "Please enter your username or email.",
+        checkingUser: "Checking user...",
+        invalidIdentifierOrPassword: "Invalid username/email or password.",
         emailRequired: "Please enter your email.",
-        checkingUsername: "Checking username availability...", // New specific message
-        usernameAvailable: "Username is available. Please proceed.",
-        usernameTaken: "Username is already taken or invalid. Please choose another. Error: ", // Updated to include backend error
         invalidEmail: "Please enter a valid email address.",
         sendingCode: "Sending verification code...",
         codeSentSuccess: "Verification code sent! Check your inbox.",
-        codeSentFailed: "Failed to send code. Please try again. Error: ", // Updated to include backend error
-        errorFetching: "Network error. Please try again later.", // Generic network error
+        codeSentFailed: "Failed to send code. Please try again. Error: ",
+        invalidCode: "Invalid or expired verification code.",
+        passwordTooShort: "Password must be at least 8 characters.",
+        passwordTooLong: "Password cannot exceed 50 characters.",
+        passwordsMismatch: "Passwords do not match.",
+        settingPassword: "Setting password...",
+        passwordSetSuccess: "Password set successfully! Logging you in...",
+        registrationComplete: "Registration complete! Logging you in...",
+        errorFetching: "Network error. Please try again later.",
         linkingAccount: "Linking with ",
         notImplemented: " is not yet implemented. Stay tuned!",
         genericError: "An unexpected error occurred."
@@ -60,25 +91,43 @@ const translations = {
         pageTitle: "سپنتاآیدی: هویت دیجیتال جهانی شما",
         mainHeading: "سپنتاآیدی",
         descriptionText: "حضور آنلاین خود را با یک سپنتاآیدی امن و یکپارچه کنید. تمامی سرویس‌های ایمیل و حساب‌های دیجیتال خود را در یک مکان متصل نمایید.",
-        // Registration steps
-        step1Heading: "سپنتاآیدی خود را انتخاب کنید",
-        createYourIdPrompt: "یک نام کاربری منحصر به فرد برای هویت دیجیتال جهانی خود برگزینید.",
-        enterUsernamePlaceholder: "نام کاربری دلخواه خود را وارد کنید",
-        nextButton: "بعدی",
-        step2Heading: "ایمیل خود را تأیید کنید",
-        enterEmailPrompt: "لطفاً آدرس ایمیل خود را برای دریافت کد تأیید وارد کنید.",
+        // Authentication Steps (Unified for Login/Register)
+        authStep1Heading: "ورود یا ثبت‌نام",
+        authStep1Prompt: "نام کاربری سپنتاآیدی یا آدرس ایمیل خود را وارد کنید.",
+        identifierPlaceholder: "نام کاربری یا ایمیل",
+        proceedButton: "ادامه",
+        // Login Step 2
+        loginStep2Heading: "رمز عبور را وارد کنید",
+        loginStep2Prompt: "لطفاً رمز عبور خود را برای {identifier} وارد کنید.",
+        passwordPlaceholder: "رمز عبور",
+        forgotPassword: "رمز عبور را فراموش کرده‌اید؟",
+        loginButton: "ورود",
+        // Registration Step 2 (Email)
+        regStep2Heading: "ایمیل خود را تأیید کنید",
+        regStep2Prompt: "لطفاً آدرس ایمیل خود را برای {username} وارد کنید تا کد تأیید دریافت کنید.",
         enterEmailPlaceholder: "ایمیل خود را وارد کنید",
         sendCodeButton: "ارسال کد",
-        backButton: "بازگشت",
-        step3Heading: "کد تأیید را وارد کنید",
-        enterCodePrompt: "کد ۶ رقمی به ایمیل شما ارسال شد. لطفاً آن را در زیر وارد کنید.",
+        // Verification Code Step 3
+        verifyCodeStep3Heading: "کد تأیید را وارد کنید",
+        verifyCodeStep3Prompt: "کد ۶ رقمی به {email} ارسال شد. لطفاً آن را در زیر وارد کنید.",
         enterCodePlaceholder: "کد ۶ رقمی را وارد کنید",
         verifyCodeButton: "تأیید کد",
-        step4Heading: "رمز عبور خود را تعیین کنید",
-        setPasswordPrompt: "یک رمز عبور قوی برای سپنتاآیدی خود انتخاب کنید.",
+        // Password Setup Step 4
+        setPasswordStep4Heading: "رمز عبور خود را تعیین کنید",
+        setPasswordStep4Prompt: "یک رمز عبور قوی برای سپنتاآیدی خود انتخاب کنید.",
         enterPasswordPlaceholder: "رمز عبور را وارد کنید",
         confirmPasswordPlaceholder: "تأیید رمز عبور",
-        finishButton: "تکمیل ثبت‌نام",
+        finishButton: "تکمیل",
+        // Password Reset Request Step
+        resetRequestHeading: "بازنشانی رمز عبور",
+        resetRequestPrompt: "ایمیلی که با سپنتاآیدی خود مرتبط کرده‌اید را وارد کنید تا کد بازنشانی را دریافت نمایید.",
+        sendResetCodeButton: "ارسال کد بازنشانی",
+        // Success Screen
+        successHeading: "به سپنتاآیدی خوش آمدید!",
+        successMessage: "هویت دیجیتال شما آماده است. سپنتاآیدی شما {spenta_id} می‌باشد.",
+        goToDashboard: "ورود به پنل",
+        // Common Buttons
+        backButton: "بازگشت",
         // Account linking
         linkAccountsHeading: "حساب‌های خود را متصل کنید",
         linkAccountsDescription: "حساب‌های جیمیل، اوت‌لوک، پروتون‌میل و سایر حساب‌های موجود خود را متصل کنید تا زندگی دیجیتال خود را به آسانی از طریق سپنتاآیدی مدیریت نمایید.",
@@ -88,15 +137,21 @@ const translations = {
         settingsHeading: "تنظیمات",
         selectLanguageModal: "زبان:",
         // Messages
-        usernameRequired: "لطفاً نام کاربری را وارد کنید.",
+        usernameOrEmailRequired: "لطفاً نام کاربری یا ایمیل خود را وارد کنید.",
+        checkingUser: "در حال بررسی کاربر...",
+        invalidIdentifierOrPassword: "نام کاربری/ایمیل یا رمز عبور نامعتبر است.",
         emailRequired: "لطفاً ایمیل خود را وارد کنید.",
-        checkingUsername: "در حال بررسی نام کاربری...",
-        usernameAvailable: "نام کاربری در دسترس است. لطفاً ادامه دهید.",
-        usernameTaken: "نام کاربری قبلاً استفاده شده یا نامعتبر است. لطفاً نام دیگری انتخاب کنید. خطا: ", // Updated to include backend error
         invalidEmail: "لطفاً یک آدرس ایمیل معتبر وارد کنید.",
         sendingCode: "در حال ارسال کد تأیید...",
         codeSentSuccess: "کد تأیید ارسال شد! صندوق ورودی خود را بررسی کنید.",
-        codeSentFailed: "ارسال کد ناموفق بود. لطفاً دوباره تلاش کنید. خطا: ", // Updated to include backend error
+        codeSentFailed: "ارسال کد ناموفق بود. لطفاً دوباره تلاش کنید. خطا: ",
+        invalidCode: "کد تأیید نامعتبر یا منقضی شده است.",
+        passwordTooShort: "رمز عبور باید حداقل ۸ کاراکتر باشد.",
+        passwordTooLong: "رمز عبور نمی‌تواند بیش از ۵۰ کاراکتر باشد.",
+        passwordsMismatch: "رمزهای عبور با هم مطابقت ندارند.",
+        settingPassword: "در حال تنظیم رمز عبور...",
+        passwordSetSuccess: "رمز عبور با موفقیت تنظیم شد! در حال ورود شما...",
+        registrationComplete: "ثبت‌نام تکمیل شد! در حال ورود شما...",
         errorFetching: "خطای شبکه. لطفاً بعداً دوباره امتحان کنید.",
         linkingAccount: "در حال اتصال به ",
         notImplemented: " هنوز پیاده‌سازی نشده است. با ما همراه باشید!",
@@ -112,7 +167,17 @@ function changeLanguage(lang) {
 
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
-        if (translations[lang] && translations[lang][key]) {
+        // Handle specific placeholders for password prompt
+        if (key === 'loginStep2Prompt' && currentAuthData.identifier) {
+             element.textContent = translations[lang][key].replace('{identifier}', currentAuthData.identifier);
+        } else if (key === 'regStep2Prompt' && currentAuthData.username) {
+            element.textContent = translations[lang][key].replace('{username}', currentAuthData.username);
+        } else if (key === 'verifyCodeStep3Prompt' && currentAuthData.email) {
+            element.textContent = translations[lang][key].replace('{email}', currentAuthData.email);
+        } else if (key === 'successMessage' && currentAuthData.spenta_id) {
+             element.textContent = translations[lang][key].replace('{spenta_id}', currentAuthData.spenta_id);
+        }
+        else {
             element.textContent = translations[lang][key];
         }
     });
@@ -145,37 +210,45 @@ function setInitialLanguage() {
     }
 }
 
-// --- Multi-Step Form Management ---
+// --- Multi-Step Auth Form Management ---
 
-function showStep(stepNumber) {
-    const steps = document.querySelectorAll('.registration-step');
+function showAuthStep(stepId) {
+    const steps = document.querySelectorAll('.auth-step');
     steps.forEach(step => {
         step.classList.remove('active-step');
-        // Reset message for previous steps
-        const messageElement = step.querySelector('.message-text'); // Get message element within each step
+        const messageElement = step.querySelector('.message-text'); // Clear message for each step
         if (messageElement) {
             messageElement.textContent = '';
             messageElement.style.color = '';
         }
     });
-    document.getElementById(`step${stepNumber}`).classList.add('active-step');
-    currentStep = stepNumber;
+    document.getElementById(stepId).classList.add('active-step');
+    
+    // Update dynamic text based on currentAuthData
+    if (stepId === 'loginStep2') {
+        document.getElementById('displayLoginIdentifier').textContent = currentAuthData.identifier;
+    } else if (stepId === 'regStep2') {
+        document.getElementById('displayRegUsername').textContent = currentAuthData.username;
+    } else if (stepId === 'verifyCodeStep3') {
+        document.getElementById('displayVerificationEmail').textContent = currentAuthData.email;
+    } else if (stepId === 'successScreen') {
+        document.getElementById('displayFinalSpentaId').textContent = currentAuthData.spenta_id;
+    }
+    // Re-apply translations for dynamic content
+    changeLanguage(localStorage.getItem('selectedLanguage') || 'en');
 }
 
-function displayStatusMessage(message, type = 'info') {
+function displayStatusMessage(message, type = 'info', step = currentAuthStep) {
     const currentLang = localStorage.getItem('selectedLanguage') || 'en';
     let messageElement;
     
-    // Select the correct message element based on current step
-    if (currentStep === 1) {
-        messageElement = document.getElementById('usernameStatusMessage');
-    } else if (currentStep === 2) {
-        messageElement = document.getElementById('emailStatusMessage');
-    } else if (currentStep === 3) {
-        messageElement = document.getElementById('codeStatusMessage');
-    } else if (currentStep === 4) {
-        messageElement = document.getElementById('passwordStatusMessage');
-    }
+    if (step === 1) messageElement = document.getElementById('authStatusMessage');
+    else if (step === 'login2') messageElement = document.getElementById('loginStatusMessage');
+    else if (step === 'reg2') messageElement = document.getElementById('regEmailStatusMessage');
+    else if (step === 'verify3') messageElement = document.getElementById('verifyCodeStatusMessage');
+    else if (step === 'setPass4') messageElement = document.getElementById('setPasswordStatusMessage');
+    else if (step === 'resetReq') messageElement = document.getElementById('resetRequestStatusMessage');
+
 
     if (messageElement) {
         messageElement.textContent = message;
@@ -191,89 +264,317 @@ function displayStatusMessage(message, type = 'info') {
     }
 }
 
-// --- SpentaID Registration Logic (Integrated with Backend) ---
+// --- Main Auth Flow Logic ---
 
-async function handleStep1Next() {
-    const usernameInput = document.getElementById('usernameInput');
-    const username = usernameInput.value.trim();
+async function handleAuthStep1Proceed() {
+    const identifierInput = document.getElementById('identifierInput');
+    const identifier = identifierInput.value.trim(); // Can be username or email
     const currentLang = localStorage.getItem('selectedLanguage') || 'en';
 
-    displayStatusMessage('', 'info'); // Clear previous message
+    displayStatusMessage('', 'info', 1);
 
-    if (!username) {
-        displayStatusMessage(translations[currentLang].usernameRequired, 'warning');
+    if (!identifier) {
+        displayStatusMessage(translations[currentLang].usernameOrEmailRequired, 'warning', 1);
         return;
     }
 
-    displayStatusMessage(translations[currentLang].checkingUsername, 'info'); // More specific message
+    displayStatusMessage(translations[currentLang].checkingUser, 'info', 1);
 
     try {
-        const response = await fetch(`${BACKEND_API_BASE_URL}/api/check-username`, { // New API endpoint
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/check-user-exists`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username: username }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: identifier }),
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            currentUserData.username = username; // Store username
-            currentUserData.spenta_id = data.spenta_id; // Store generated SpentaID
-            displayStatusMessage(translations[currentLang].usernameAvailable, 'success');
-            setTimeout(() => { 
-                showStep(2); // Go to Step 2 (Email)
-            }, 1000); 
+            currentAuthData.identifier = identifier; // Store identifier
+            if (data.status === 'registered') {
+                currentAuthData.isLogin = true;
+                showAuthStep('loginStep2'); // Go to login password step
+            } else if (data.status === 'unverified') {
+                currentAuthData.isLogin = false; // User needs to complete registration
+                currentAuthData.username = data.username; // Backend provides username
+                showAuthStep('regStep2'); // Go to registration email step
+                displayStatusMessage(translations[currentLang].unverifiedUserPrompt || translations[currentLang].regStep2Prompt.replace('{username}', data.username), 'info', 'reg2'); // Provide specific prompt if available
+            } else if (data.status === 'new_username_reg') {
+                currentAuthData.isLogin = false;
+                currentAuthData.username = identifier; // Username is identifier
+                showAuthStep('regStep2'); // Go to registration email step
+            } else if (data.status === 'new_email_reg') {
+                currentAuthData.isLogin = false;
+                // For email-based registration, we might need a username prompt first
+                // For simplicity here, let's assume if email, they still need to choose username or we derive it
+                // For now, prompt for username in regStep2 or ask them to go back and choose username if email only.
+                // This requires a new step in between if username not implied by email.
+                // For this version, let's default to username-first approach for new users if identifier is email
+                displayStatusMessage(translations[currentLang].invalidIdentifierOrPassword + " (Please start with username or a known email)", 'error', 1);
+                 // If identifier is a new email, we need to transition to a step where they pick a username *first*
+                 // For now, this is a simplified flow. A complex app would have specific path for email-first registration.
+            }
         } else {
             const errorMessage = data.error || translations[currentLang].genericError;
-            displayStatusMessage(translations[currentLang].usernameTaken + errorMessage, 'error'); // Include backend error
+            displayStatusMessage(errorMessage, 'error', 1); // Display backend error
         }
     } catch (error) {
-        console.error('Error checking username:', error);
-        displayStatusMessage(translations[currentLang].errorFetching, 'error');
+        console.error('Error checking user:', error);
+        displayStatusMessage(translations[currentLang].errorFetching, 'error', 1);
     }
 }
 
-async function handleStep2SendCode() {
-    const emailInput = document.getElementById('emailInput');
-    const email = emailInput.value.trim();
+async function handleLogin() {
+    const passwordInput = document.getElementById('loginPasswordInput');
+    const password = passwordInput.value.trim();
     const currentLang = localStorage.getItem('selectedLanguage') || 'en';
 
-    displayStatusMessage('', 'info'); // Clear previous message
+    displayStatusMessage('', 'info', 'login2');
 
-    if (!email) {
-        displayStatusMessage(translations[currentLang].emailRequired, 'warning');
+    if (!password) {
+        displayStatusMessage(translations[currentLang].passwordRequired || 'Password is required.', 'warning', 'login2');
         return;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        displayStatusMessage(translations[currentLang].invalidEmail, 'warning');
-        return;
-    }
-
-    displayStatusMessage(translations[currentLang].sendingCode, 'info');
 
     try {
-        const response = await fetch(`${BACKEND_API_BASE_URL}/api/register-email`, { // New API endpoint
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: currentUserData.username, email: email }) // Send username and email
+            body: JSON.stringify({ identifier: currentAuthData.identifier, password: password }),
         });
         const data = await response.json();
 
         if (response.ok) {
-            currentUserData.email = email; // Store email
-            displayStatusMessage(translations[currentLang].codeSentSuccess, 'success');
-            setTimeout(() => { showStep(3); }, 1500); // Go to step 3 (Code Verification)
+            currentAuthData.spenta_id = data.spenta_id; // Store final SpentaID
+            // Simulate auto-login by showing success screen.
+            // In a real app, you'd store data.token in localStorage and redirect.
+            displayStatusMessage(translations[currentLang].loginSuccessful || "Login successful!", 'success', 'login2');
+            setTimeout(() => {
+                showAuthStep('successScreen');
+            }, 1000);
+        } else {
+            const errorMessage = data.error || translations[currentLang].invalidIdentifierOrPassword;
+            displayStatusMessage(errorMessage, 'error', 'login2');
+        }
+    } catch (error) {
+        console.error('Error during login:', error);
+        displayStatusMessage(translations[currentLang].errorFetching, 'error', 'login2');
+    }
+}
+
+async function handleRegEmailSendCode() {
+    const emailInput = document.getElementById('regEmailInput');
+    const email = emailInput.value.trim();
+    const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+
+    displayStatusMessage('', 'info', 'reg2');
+
+    if (!email) {
+        displayStatusMessage(translations[currentLang].emailRequired, 'warning', 'reg2');
+        return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        displayStatusMessage(translations[currentLang].invalidEmail, 'warning', 'reg2');
+        return;
+    }
+
+    displayStatusMessage(translations[currentLang].sendingCode, 'info', 'reg2');
+
+    try {
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/register/email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: currentAuthData.username || currentAuthData.identifier, email: email }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            currentAuthData.email = email; // Store email
+            // console.log("DEBUG: Sent code (for testing):", data.sent_code); // For debugging only! Remove in prod.
+            displayStatusMessage(translations[currentLang].codeSentSuccess, 'success', 'reg2');
+            setTimeout(() => { showAuthStep('verifyCodeStep3'); }, 1500); // Go to step 3 (Code Verification)
         } else {
             const errorMessage = data.error || translations[currentLang].genericError;
-            displayStatusMessage(translations[currentLang].codeSentFailed + errorMessage, 'error'); // Include backend error
+            displayStatusMessage(translations[currentLang].codeSentFailed + errorMessage, 'error', 'reg2');
         }
     } catch (error) {
         console.error('Error sending email code:', error);
-        displayStatusMessage(translations[currentLang].errorFetching, 'error');
+        displayStatusMessage(translations[currentLang].errorFetching, 'error', 'reg2');
+    }
+}
+
+async function handleVerifyCode() {
+    const codeInput = document.getElementById('verificationCodeInput');
+    const otp_code = codeInput.value.trim();
+    const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+
+    displayStatusMessage('', 'info', 'verify3');
+
+    if (!otp_code) {
+        displayStatusMessage(translations[currentLang].codeRequired || 'Verification code is required.', 'warning', 'verify3');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/register/verify-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: currentAuthData.username, otp_code: otp_code }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            displayStatusMessage(translations[currentLang].emailVerified || "Email verified!", 'success', 'verify3');
+            setTimeout(() => {
+                showAuthStep('setPasswordStep4'); // Go to password setup step
+            }, 1000);
+        } else {
+            const errorMessage = data.error || translations[currentLang].invalidCode;
+            displayStatusMessage(errorMessage, 'error', 'verify3');
+        }
+    } catch (error) {
+        console.error('Error verifying code:', error);
+        displayStatusMessage(translations[currentLang].errorFetching, 'error', 'verify3');
+    }
+}
+
+async function handleSetPassword() {
+    const newPasswordInput = document.getElementById('newPasswordInput');
+    const confirmNewPasswordInput = document.getElementById('confirmNewPasswordInput');
+    const newPassword = newPasswordInput.value.trim();
+    const confirmPassword = confirmNewPasswordInput.value.trim();
+    const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+
+    displayStatusMessage('', 'info', 'setPass4');
+
+    // Password validation
+    if (!newPassword || !confirmPassword) {
+        displayStatusMessage(translations[currentLang].passwordRequired || "Password is required.", 'warning', 'setPass4');
+        return;
+    }
+    if (newPassword.length < 8) {
+        displayStatusMessage(translations[currentLang].passwordTooShort, 'warning', 'setPass4');
+        return;
+    }
+    if (newPassword.length > 50) {
+        displayStatusMessage(translations[currentLang].passwordTooLong, 'warning', 'setPass4');
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        displayStatusMessage(translations[currentLang].passwordsMismatch, 'warning', 'setPass4');
+        return;
+    }
+
+    displayStatusMessage(translations[currentLang].settingPassword, 'info', 'setPass4');
+
+    try {
+        const endpoint = currentAuthData.isResettingPassword ? '/api/password-reset/confirm' : '/api/register/set-password';
+        const bodyData = {
+            username: currentAuthData.username, // For registration
+            email: currentAuthData.email,       // For reset
+            password: newPassword
+        };
+        if (currentAuthData.isResettingPassword) {
+            bodyData.reset_token = currentAuthData.reset_token; // Include reset token for reset flow
+        }
+
+        const response = await fetch(`${BACKEND_API_BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            displayStatusMessage(currentAuthData.isResettingPassword ? translations[currentLang].passwordSetSuccess : translations[currentLang].registrationComplete, 'success', 'setPass4');
+            currentAuthData.spenta_id = currentAuthData.spenta_id || data.spenta_id; // Get SpentaID after registration
+            
+            // --- Auto Login after registration/reset ---
+            await handleAutoLogin(currentAuthData.username || currentAuthData.email, newPassword); // Use new password for auto-login
+        } else {
+            const errorMessage = data.error || translations[currentLang].genericError;
+            displayStatusMessage(errorMessage, 'error', 'setPass4');
+        }
+    } catch (error) {
+        console.error('Error setting password:', error);
+        displayStatusMessage(translations[currentLang].errorFetching, 'error', 'setPass4');
+    }
+}
+
+async function handleAutoLogin(identifier, password) {
+    // This is to simulate auto-login, fetching a token after successful registration/reset
+    try {
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: identifier, password: password }),
+        });
+        const data = await response.json();
+
+        if (response.ok && data.token) {
+            localStorage.setItem('spentaAuthToken', data.token); // Store token
+            localStorage.setItem('spentaUserId', data.spenta_id); // Store SpentaID for display
+            currentAuthData.spenta_id = data.spenta_id; // Ensure it's in currentAuthData
+            displayStatusMessage(translations[localStorage.getItem('selectedLanguage') || 'en'].loginSuccessful || "Login successful!", 'success', 'setPass4'); // Update message
+            setTimeout(() => { showAuthStep('successScreen'); }, 1000);
+        } else {
+            console.error('Auto-login failed:', data.error);
+            displayStatusMessage(translations[localStorage.getItem('selectedLanguage') || 'en'].loginFailed || "Auto-login failed. Please try logging in manually.", 'error', 'setPass4');
+            // Maybe redirect to login page directly or show a login button
+        }
+    } catch (error) {
+        console.error('Network error during auto-login:', error);
+        displayStatusMessage(translations[localStorage.getItem('selectedLanguage') || 'en'].errorFetching, 'error', 'setPass4');
+    }
+}
+
+
+// --- Password Reset Flow ---
+async function handleForgotPassword() {
+    currentAuthData.isResettingPassword = true;
+    showAuthStep('resetRequestStep');
+}
+
+async function handleResetRequest() {
+    const resetEmailInput = document.getElementById('resetEmailInput');
+    const email = resetEmailInput.value.trim();
+    const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+
+    displayStatusMessage('', 'info', 'resetReq');
+
+    if (!email) {
+        displayStatusMessage(translations[currentLang].emailRequired, 'warning', 'resetReq');
+        return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        displayStatusMessage(translations[currentLang].invalidEmail, 'warning', 'resetReq');
+        return;
+    }
+
+    displayStatusMessage(translations[currentLang].sendingCode, 'info', 'resetReq');
+
+    try {
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/password-reset/request`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            currentAuthData.email = email; // Store email for reset confirmation
+            currentAuthData.reset_token = data.reset_token; // TEMPORARY: for testing, normally not returned to frontend
+            displayStatusMessage(data.message, 'success', 'resetReq');
+            setTimeout(() => { showAuthStep('verifyCodeStep3'); }, 1500); // Re-use verify code step
+        } else {
+            const errorMessage = data.error || translations[currentLang].genericError;
+            displayStatusMessage(errorMessage, 'error', 'resetReq');
+        }
+    } catch (error) {
+        console.error('Error requesting password reset:', error);
+        displayStatusMessage(translations[currentLang].errorFetching, 'error', 'resetReq');
     }
 }
 
@@ -300,17 +601,52 @@ function linkAccount(provider) {
 
 document.addEventListener('DOMContentLoaded', () => {
     setInitialLanguage();
-    showStep(1); // Ensure Step 1 is shown initially
+    showAuthStep('authStep1'); // Start with the unified login/register step
 
-    // Event listeners for multi-step form navigation
-    document.getElementById('nextToStep2Button').addEventListener('click', handleStep1Next);
-    document.getElementById('backToStep1Button').addEventListener('click', () => showStep(1));
-    document.getElementById('nextToStep3Button').addEventListener('click', handleStep2SendCode);
-    document.getElementById('backToStep2Button').addEventListener('click', () => showStep(2));
-    document.getElementById('nextToStep4Button').addEventListener('click', () => { /* Logic for Code Verification */ showStep(4); }); // Placeholder
-    document.getElementById('backToStep3Button').addEventListener('click', () => showStep(3));
-    document.getElementById('finishRegistrationButton').addEventListener('click', () => { /* Logic for Finish */ alert('Registration Finished! (Simulated)'); }); // Placeholder
+    // --- Authentication Flow Buttons ---
+    document.getElementById('proceedAuthButton').addEventListener('click', handleAuthStep1Proceed);
+    
+    // Login Path
+    document.getElementById('loginButton').addEventListener('click', handleLogin);
+    document.getElementById('backFromLoginToAuth1Button').addEventListener('click', () => showAuthStep('authStep1'));
+    document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent default link behavior
+        handleForgotPassword();
+    });
 
+    // Registration Path (Email)
+    document.getElementById('sendRegCodeButton').addEventListener('click', handleRegEmailSendCode);
+    document.getElementById('backFromReg2ToAuth1Button').addEventListener('click', () => {
+        currentAuthData.username = ''; // Clear username if going back
+        showAuthStep('authStep1');
+    });
+
+    // Code Verification Path (Shared for Reg & Reset)
+    document.getElementById('verifyCodeButton').addEventListener('click', handleVerifyCode);
+    document.getElementById('backFromVerifyCodeToReg2Button').addEventListener('click', () => {
+        if (currentAuthData.isResettingPassword) {
+            showAuthStep('resetRequestStep');
+        } else {
+            showAuthStep('regStep2');
+        }
+    });
+
+    // Password Setup Path (Shared for Reg & Reset)
+    document.getElementById('completeAuthButton').addEventListener('click', handleSetPassword);
+    document.getElementById('backFromSetPasswordToVerifyCode3Button').addEventListener('click', () => showAuthStep('verifyCodeStep3'));
+
+    // Password Reset Path
+    document.getElementById('sendResetCodeButton').addEventListener('click', handleResetRequest);
+    document.getElementById('backFromResetRequestToLogin2Button').addEventListener('click', () => {
+        currentAuthData.isResettingPassword = false;
+        showAuthStep('loginStep2'); // Go back to login if they changed their mind
+    });
+
+    // Success Screen
+    document.getElementById('goToDashboardButton').addEventListener('click', () => alert('Redirecting to dashboard... (Not implemented yet)'));
+
+
+    // --- General UI ---
     // Event listeners for settings modal
     if (settingsIcon) {
         settingsIcon.addEventListener('click', () => openModal(settingsModal));
