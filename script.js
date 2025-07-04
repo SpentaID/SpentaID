@@ -43,15 +43,15 @@ const translations = {
         // Messages
         usernameRequired: "Please enter a username.",
         emailRequired: "Please enter your email.",
-        generatingId: "Checking username...", // Updated message
-        usernameAvailable: "Username is available. Please proceed.", // New message
-        usernameTaken: "Username is already taken or invalid. Please choose another.", // New message
-        invalidEmail: "Please enter a valid email address.", // New message
-        sendingCode: "Sending verification code...", // New message
-        codeSentSuccess: "Verification code sent! Check your inbox.", // New message
-        codeSentFailed: "Failed to send code. Please try again.", // New message
+        generatingId: "Checking username...",
+        usernameAvailable: "Username is available. Please proceed.",
+        usernameTaken: "Username is already taken or invalid. Please choose another.",
+        invalidEmail: "Please enter a valid email address.",
+        sendingCode: "Sending verification code...",
+        codeSentSuccess: "Verification code sent! Check your inbox.",
+        codeSentFailed: "Failed to send code. Please try again.",
         // Existing messages
-        idGeneratedSuccess: "SpentaID created successfully!", // Will be used later for full registration success
+        idGeneratedSuccess: "SpentaID created successfully!",
         idGenerationFailed: "Failed to create SpentaID: ", 
         errorFetching: "Network error. Please try again later.",
         linkingAccount: "Linking with ",
@@ -72,15 +72,15 @@ const translations = {
         enterEmailPlaceholder: "ایمیل خود را وارد کنید",
         sendCodeButton: "ارسال کد",
         backButton: "بازگشت",
-        step3Heading: "کد تأیید را وارد کنید", // Future
-        enterCodePrompt: "کد ۶ رقمی به ایمیل شما ارسال شد. لطفاً آن را در زیر وارد کنید.", // Future
-        enterCodePlaceholder: "کد ۶ رقمی را وارد کنید", // Future
-        verifyCodeButton: "تأیید کد", // Future
-        step4Heading: "رمز عبور خود را تعیین کنید", // Future
-        setPasswordPrompt: "یک رمز عبور قوی برای سپنتاآیدی خود انتخاب کنید.", // Future
-        enterPasswordPlaceholder: "رمز عبور را وارد کنید", // Future
-        confirmPasswordPlaceholder: "تأیید رمز عبور", // Future
-        finishButton: "تکمیل ثبت‌نام", // Future
+        step3Heading: "کد تأیید را وارد کنید",
+        enterCodePrompt: "کد ۶ رقمی به ایمیل شما ارسال شد. لطفاً آن را در زیر وارد کنید.",
+        enterCodePlaceholder: "کد ۶ رقمی را وارد کنید",
+        verifyCodeButton: "تأیید کد",
+        step4Heading: "رمز عبور خود را تعیین کنید",
+        setPasswordPrompt: "یک رمز عبور قوی برای سپنتاآیدی خود انتخاب کنید.",
+        enterPasswordPlaceholder: "رمز عبور را وارد کنید",
+        confirmPasswordPlaceholder: "تأیید رمز عبور",
+        finishButton: "تکمیل ثبت‌نام",
         // Account linking
         linkAccountsHeading: "حساب‌های خود را متصل کنید",
         linkAccountsDescription: "حساب‌های جیمیل، اوت‌لوک، پروتون‌میل و سایر حساب‌های موجود خود را متصل کنید تا زندگی دیجیتال خود را به آسانی از طریق سپنتاآیدی مدیریت نمایید.",
@@ -92,13 +92,13 @@ const translations = {
         // Messages
         usernameRequired: "لطفاً نام کاربری را وارد کنید.",
         emailRequired: "لطفاً ایمیل خود را وارد کنید.",
-        generatingId: "در حال بررسی نام کاربری...", // Updated message
-        usernameAvailable: "نام کاربری در دسترس است. لطفاً ادامه دهید.", // New message
-        usernameTaken: "نام کاربری قبلاً استفاده شده یا نامعتبر است. لطفاً نام دیگری انتخاب کنید.", // New message
-        invalidEmail: "لطفاً یک آدرس ایمیل معتبر وارد کنید.", // New message
-        sendingCode: "در حال ارسال کد تأیید...", // New message
-        codeSentSuccess: "کد تأیید ارسال شد! صندوق ورودی خود را بررسی کنید.", // New message
-        codeSentFailed: "ارسال کد ناموفق بود. لطفاً دوباره تلاش کنید.", // New message
+        generatingId: "در حال بررسی نام کاربری...",
+        usernameAvailable: "نام کاربری در دسترس است. لطفاً ادامه دهید.",
+        usernameTaken: "نام کاربری قبلاً استفاده شده یا نامعتبر است. لطفاً نام دیگری انتخاب کنید.",
+        invalidEmail: "لطفاً یک آدرس ایمیل معتبر وارد کنید.",
+        sendingCode: "در حال ارسال کد تأیید...",
+        codeSentSuccess: "کد تأیید ارسال شد! صندوق ورودی خود را بررسی کنید.",
+        codeSentFailed: "ارسال کد ناموفق بود. لطفاً دوباره تلاش کنید.",
         // Existing messages
         idGeneratedSuccess: "سپنتاآیدی با موفقیت ایجاد شد!",
         idGenerationFailed: "خطا در ساخت سپنتاآیدی: ", 
@@ -156,7 +156,7 @@ function showStep(stepNumber) {
     const steps = document.querySelectorAll('.registration-step');
     steps.forEach(step => {
         step.classList.remove('active-step');
-        // Reset message for next step
+        // Reset message for previous steps
         const messageElement = step.querySelector('.message-text');
         if (messageElement) {
             messageElement.textContent = '';
@@ -169,25 +169,30 @@ function showStep(stepNumber) {
 
 function displayStatusMessage(message, type = 'info') {
     const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-    const messageElement = document.getElementById(`usernameStatusMessage`); // Default to username for now
+    let messageElement;
     
-    // Dynamically select message element based on current step
+    // Select the correct message element based on current step
     if (currentStep === 1) {
-        messageElement.id = 'usernameStatusMessage';
+        messageElement = document.getElementById('usernameStatusMessage');
     } else if (currentStep === 2) {
-        messageElement.id = 'emailStatusMessage';
+        messageElement = document.getElementById('emailStatusMessage');
+    } else if (currentStep === 3) {
+        messageElement = document.getElementById('codeStatusMessage');
+    } else if (currentStep === 4) {
+        messageElement = document.getElementById('passwordStatusMessage');
     }
-    // Add more conditions for step 3, 4 later
 
-    messageElement.textContent = message;
-    if (type === 'error') {
-        messageElement.style.color = 'red';
-    } else if (type === 'success') {
-        messageElement.style.color = 'var(--color-green-light)';
-    } else if (type === 'warning') {
-        messageElement.style.color = 'orange';
-    } else {
-        messageElement.style.color = 'white'; // Info
+    if (messageElement) {
+        messageElement.textContent = message;
+        if (type === 'error') {
+            messageElement.style.color = 'red';
+        } else if (type === 'success') {
+            messageElement.style.color = 'var(--color-green-light)';
+        } else if (type === 'warning') {
+            messageElement.style.color = 'orange';
+        } else {
+            messageElement.style.color = 'white'; // Info
+        }
     }
 }
 
@@ -208,7 +213,7 @@ async function handleStep1Next() {
     displayStatusMessage(translations[currentLang].generatingId, 'info');
 
     try {
-        const response = await fetch(`${BACKEND_API_BASE_URL}/api/generate-id`, {
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/generate-id`, { // This endpoint also validates username for availability
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -219,20 +224,17 @@ async function handleStep1Next() {
         const data = await response.json();
 
         if (response.ok) {
-            // SpentaID is successfully generated/validated by backend
-            // For now, we'll store it as a temporary variable
             window.tempSpentaId = data.spenta_id; // Store for later use
             displayStatusMessage(translations[currentLang].usernameAvailable, 'success');
-            // Transition to Step 2
-            setTimeout(() => { // Small delay for user to read message
-                showStep(2);
+            setTimeout(() => { 
+                showStep(2); // Go to Step 2 (Email)
             }, 1000); 
         } else {
             const errorMessage = data.error || translations[currentLang].genericError;
-            displayStatusMessage(translations[currentLang].usernameTaken + errorMessage, 'error'); // More specific message
+            displayStatusMessage(translations[currentLang].usernameTaken + errorMessage, 'error');
         }
     } catch (error) {
-        console.error('Error generating SpentaID:', error);
+        console.error('Error checking username:', error);
         displayStatusMessage(translations[currentLang].errorFetching, 'error');
     }
 }
@@ -250,7 +252,6 @@ async function handleStep2SendCode() {
         return;
     }
 
-    // Basic email validation regex (can be more robust)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         displayStatusMessage(translations[currentLang].invalidEmail, 'warning');
@@ -263,24 +264,25 @@ async function handleStep2SendCode() {
     // This is where you would send a request to your backend to send an email.
     // For now, we'll simulate success.
     try {
+        // Example of future fetch call for sending code:
         // const response = await fetch(`${BACKEND_API_BASE_URL}/api/send-email-code`, {
         //     method: 'POST',
         //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ email: email, spenta_id: window.tempSpentaId })
+        //     body: JSON.stringify({ email: email, spenta_id: window.tempSpentaId }) // Send SpentaID too
         // });
         // const data = await response.json();
-
         // if (response.ok) {
         //     displayStatusMessage(translations[currentLang].codeSentSuccess, 'success');
-        //     setTimeout(() => { showStep(3); }, 1000); // Go to step 3 after successful code send
+        //     setTimeout(() => { showStep(3); }, 1500);
         // } else {
         //     displayStatusMessage(translations[currentLang].codeSentFailed + (data.error || ''), 'error');
         // }
         
         // --- SIMULATED SUCCESS FOR NOW ---
+        console.log("Simulating email code send to:", email);
         setTimeout(() => {
             displayStatusMessage(translations[currentLang].codeSentSuccess, 'success');
-            setTimeout(() => { showStep(3); }, 1500); // Move to step 3 after a short delay
+            setTimeout(() => { showStep(3); }, 1500); // Move to step 3 (Code Verification)
         }, 1500); // Simulate network delay
         // --- END SIMULATION ---
 
@@ -312,14 +314,17 @@ function linkAccount(provider) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    setInitialLanguage(); // Set language on page load
+    setInitialLanguage();
     showStep(1); // Ensure Step 1 is shown initially
 
     // Event listeners for multi-step form navigation
     document.getElementById('nextToStep2Button').addEventListener('click', handleStep1Next);
     document.getElementById('backToStep1Button').addEventListener('click', () => showStep(1));
-    document.getElementById('nextToStep3Button').addEventListener('click', handleStep2SendCode); // For sending email code
+    document.getElementById('nextToStep3Button').addEventListener('click', handleStep2SendCode); // Added event listener for Send Code button
     document.getElementById('backToStep2Button').addEventListener('click', () => showStep(2)); // Back from future Step 3
+    document.getElementById('nextToStep4Button').addEventListener('click', () => { /* Logic for Code Verification */ showStep(4); }); // Placeholder
+    document.getElementById('backToStep3Button').addEventListener('click', () => showStep(3)); // Back from future Step 4
+    document.getElementById('finishRegistrationButton').addEventListener('click', () => { /* Logic for Finish */ alert('Registration Finished! (Simulated)'); }); // Placeholder
 
     // Event listeners for settings modal
     if (settingsIcon) {
