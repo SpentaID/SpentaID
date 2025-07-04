@@ -290,7 +290,8 @@ p {
 
 /* Modal Styling */
 .modal {
-    display: none; /* Hidden by default */
+    /* Initially hidden by default, script will change to flex */
+    display: none; 
     position: fixed; /* Stay in place */
     z-index: 1000; /* Sit on top */
     left: 0;
@@ -299,9 +300,8 @@ p {
     height: 100%; /* Full height */
     overflow: auto; /* Enable scroll if needed */
     background-color: var(--color-overlay); /* Black w/ opacity */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: center; /* Center content vertically */
+    justify-content: center; /* Center content horizontally */
     animation: fadeInOverlay 0.3s ease-out;
 }
 
@@ -377,11 +377,7 @@ p {
     color: white;
 }
 
-.modal-button {
-    margin-top: 30px;
-    padding: 12px 25px;
-    font-size: 1em;
-}
+/* Removed the modal-button as requested */
 
 /* Animations for modal */
 @keyframes fadeInOverlay {
