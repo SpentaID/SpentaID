@@ -26,18 +26,61 @@
             Unify your online presence with a single, secure SpentaID. Connect all your email services and digital accounts in one place.
         </p>
 
-        <div class="spenta-id-generation-section">
-            <p data-translate="createYourId">Create Your SpentaID:</p>
-            <div class="input-group">
-                <input type="text" id="usernameInput" placeholder="Enter desired username" data-translate-placeholder="enterUsernamePlaceholder">
-                <span class="domain-suffix">@spenta.id</span>
+        <div class="registration-form-container">
+            <div id="step1" class="registration-step active-step">
+                <h2 data-translate="step1Heading">Choose Your SpentaID</h2>
+                <p data-translate="createYourIdPrompt">Pick a unique username for your universal digital identity.</p>
+                <div class="input-group">
+                    <input type="text" id="usernameInput" placeholder="Enter desired username" data-translate-placeholder="enterUsernamePlaceholder">
+                    <span class="domain-suffix">@spenta.id</span>
+                </div>
+                <p class="message-text" id="usernameStatusMessage"></p>
+                <button class="action-button" id="nextToStep2Button" data-translate="nextButton">Next</button>
             </div>
-            <button class="action-button" id="generateIdButton" data-translate="generateIdButton">Generate SpentaID</button>
-            <p class="spenta-id-address" id="displaySpentaId"></p>
-            <p class="message-text" id="statusMessage"></p>
-        </div>
 
-        <div class="account-linking-section">
+            <div id="step2" class="registration-step">
+                <h2 data-translate="step2Heading">Verify Your Email</h2>
+                <p data-translate="enterEmailPrompt">Please enter your email address to receive a verification code.</p>
+                <div class="input-group">
+                    <input type="email" id="emailInput" placeholder="Enter your email" data-translate-placeholder="enterEmailPlaceholder">
+                </div>
+                <p class="message-text" id="emailStatusMessage"></p>
+                <div class="navigation-buttons">
+                    <button class="action-button secondary" id="backToStep1Button" data-translate="backButton">Back</button>
+                    <button class="action-button" id="nextToStep3Button" data-translate="sendCodeButton">Send Code</button>
+                </div>
+            </div>
+
+            <div id="step3" class="registration-step">
+                <h2 data-translate="step3Heading">Enter Verification Code</h2>
+                <p data-translate="enterCodePrompt">A 6-digit code has been sent to your email. Please enter it below.</p>
+                <div class="input-group">
+                    <input type="text" id="codeInput" placeholder="Enter 6-digit code" data-translate-placeholder="enterCodePlaceholder" maxlength="6">
+                </div>
+                <p class="message-text" id="codeStatusMessage"></p>
+                <div class="navigation-buttons">
+                    <button class="action-button secondary" id="backToStep2Button" data-translate="backButton">Back</button>
+                    <button class="action-button" id="nextToStep4Button" data-translate="verifyCodeButton">Verify Code</button>
+                </div>
+            </div>
+
+            <div id="step4" class="registration-step">
+                <h2 data-translate="step4Heading">Set Your Password</h2>
+                <p data-translate="setPasswordPrompt">Choose a strong password for your SpentaID.</p>
+                <div class="input-group">
+                    <input type="password" id="passwordInput" placeholder="Enter password" data-translate-placeholder="enterPasswordPlaceholder">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="confirmPasswordInput" placeholder="Confirm password" data-translate-placeholder="confirmPasswordPlaceholder">
+                </div>
+                <p class="message-text" id="passwordStatusMessage"></p>
+                <div class="navigation-buttons">
+                    <button class="action-button secondary" id="backToStep3Button" data-translate="backButton">Back</button>
+                    <button class="action-button" id="finishRegistrationButton" data-translate="finishButton">Finish Registration</button>
+                </div>
+            </div>
+            
+        </div> <div class="account-linking-section">
             <h2 data-translate="linkAccountsHeading">Link Your Accounts</h2>
             <p data-translate="linkAccountsDescription">Connect your existing Gmail, Outlook, ProtonMail, and other accounts to seamlessly manage your digital life from SpentaID.</p>
             <div class="account-icons">
