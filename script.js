@@ -13,7 +13,6 @@ const translations = {
         enterUsernamePlaceholder: "Enter desired username",
         generateIdButton: "Generate SpentaID",
         learnMoreButton: "Learn More",
-        selectLanguage: "Select Language:", // Kept for modal functionality, not main view
         linkAccountsHeading: "Link Your Accounts",
         linkAccountsDescription: "Connect your existing Gmail, Outlook, ProtonMail, and other accounts to seamlessly manage your digital life from SpentaID.",
         getStartedButton: "Get Started",
@@ -21,7 +20,7 @@ const translations = {
         // Settings Modal
         settingsHeading: "Settings",
         selectLanguageModal: "Language:",
-        closeButton: "Close",
+        // Removed closeButton as per request
         // Messages
         generatingId: "Generating SpentaID...",
         idGeneratedSuccess: "SpentaID created successfully!",
@@ -41,7 +40,6 @@ const translations = {
         enterUsernamePlaceholder: "نام کاربری دلخواه خود را وارد کنید",
         generateIdButton: "ساخت سپنتاآیدی",
         learnMoreButton: "بیشتر بدانید",
-        selectLanguage: "انتخاب زبان:", // Kept for modal functionality, not main view
         linkAccountsHeading: "حساب‌های خود را متصل کنید",
         linkAccountsDescription: "حساب‌های جیمیل، اوت‌لوک، پروتون‌میل و سایر حساب‌های موجود خود را متصل کنید تا زندگی دیجیتال خود را به آسانی از طریق سپنتاآیدی مدیریت نمایید.",
         getStartedButton: "شروع کنید",
@@ -49,7 +47,7 @@ const translations = {
         // Settings Modal
         settingsHeading: "تنظیمات",
         selectLanguageModal: "زبان:",
-        closeButton: "بستن",
+        // Removed closeButton as per request
         // Messages
         generatingId: "در حال ساخت سپنتاآیدی...",
         idGeneratedSuccess: "سپنتاآیدی با موفقیت ایجاد شد!",
@@ -89,18 +87,20 @@ function changeLanguage(lang) {
     const modalLangSelect = document.getElementById('modal-language-select');
     if (modalLangSelect) {
         modalLangSelect.value = lang;
+        // The onchange handler in HTML calls changeLanguage directly, then closes.
+        // If we want to change language and stay in modal, remove closeModal('settingsModal') from HTML onchange.
+        // For now, it stays for instant close on language change.
     }
 }
 
 // Function to set the initial language when the page loads
 function setInitialLanguage() {
     const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
-    const langSelect = document.getElementById('language-select'); // The hidden selector
     const modalLangSelect = document.getElementById('modal-language-select'); // The modal selector
 
-    if (langSelect) langSelect.value = savedLanguage;
-    if (modalLangSelect) modalLangSelect.value = savedLanguage;
-
+    if (modalLangSelect) {
+        modalLangSelect.value = savedLanguage;
+    }
     changeLanguage(savedLanguage);
 }
 
@@ -157,17 +157,14 @@ async function generateSpentaId() {
 const settingsModal = document.getElementById('settingsModal');
 const settingsIcon = document.getElementById('settingsIcon');
 const closeSettingsModalButton = document.getElementById('closeSettingsModal');
-const modalCloseButton = settingsModal.querySelector('.modal-button');
+// Removed modalCloseButton as per request
 
 function openModal(modalElement) {
     modalElement.style.display = 'flex'; // Use flex to center content
 }
 
-function closeModal(modalElementId) {
-    const modalElement = document.getElementById(modalElementId);
-    if (modalElement) {
-        modalElement.style.display = 'none';
-    }
+function closeModal(modalElement) { // Changed to take element directly
+    modalElement.style.display = 'none';
 }
 
 // Placeholder for future account linking logic
@@ -196,21 +193,21 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsIcon.addEventListener('click', () => openModal(settingsModal));
     }
     if (closeSettingsModalButton) {
-        closeSettingsModalButton.addEventListener('click', () => closeModal('settingsModal'));
-    }
-    if (modalCloseButton) {
-        modalCloseButton.addEventListener('click', () => closeModal('settingsModal'));
+        closeSettingsModalButton.addEventListener('click', () => closeModal(settingsModal)); // Close button logic
     }
     // Close modal if user clicks outside of it
     window.addEventListener('click', (event) => {
         if (event.target == settingsModal) {
-            closeModal('settingsModal');
+            closeModal(settingsModal);
         }
     });
 
-    // Initialize the language selector in the modal
+    // Handle language change from modal select
     const modalLangSelect = document.getElementById('modal-language-select');
     if (modalLangSelect) {
-        modalLangSelect.value = localStorage.getItem('selectedLanguage') || 'en';
+        modalLangSelect.addEventListener('change', (event) => {
+            changeLanguage(event.target.value);
+            closeModal(settingsModal); // Close modal after language change
+        });
     }
 });
